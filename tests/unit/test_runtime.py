@@ -21,6 +21,7 @@ from databricks.labs.ucx.runtime import (
     assess_global_init_scripts, workspace_listing, crawl_permissions, crawl_groups, destroy_schema,
     delete_backup_groups, apply_permissions_to_account_groups,
 )
+from tests.unit import workspace_client_mock
 
 
 def azure_mock_config() -> WorkspaceConfig:
@@ -266,14 +267,21 @@ def test_runtime_destroy_schema(mocker):
         assert "DROP DATABASE ucx CASCADE" in sql_backend.queries
 
 
-# TODO smells like delete_backup_groups isn't deleting anything, but maybe that's because there's nothing to delete ?
+# TODO WIP smells like delete_backup_groups isn't deleting anything, but maybe that's because there's nothing to delete ?
 # def test_runtime_delete_backup_groups(mocker):
 #     with patch.dict(os.environ, {"DATABRICKS_RUNTIME_VERSION": "14.0"}):
 #         pyspark_sql_session = mocker.Mock()
 #         sys.modules["pyspark.sql.session"] = pyspark_sql_session
 #         cfg = azure_mock_config()
-#         ws = create_autospec(WorkspaceClient)
-#         sql_backend = MockBackend()
+#         ws = workspace_client_mock()
+#         mock_group = mocker.Mock()
+#         mock_group.meta.resource_type='WorkspaceGroup'
+#         ws.groups.list.return_value = [ mock_group ]
+#         migrated_groups = MockBackend.rows("groups")
+#         rows = {
+#             "SELECT": migrated_groups[("migrated",)]
+#         }
+#         sql_backend = MockBackend(rows=rows)
 #         delete_backup_groups(cfg, ws, sql_backend, mock_installation())
 #
 #         assert "DELETE" in sql_backend.queries # TODO
